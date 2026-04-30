@@ -67,9 +67,15 @@ def process_video(url: str, user_id: str, progress: Callable[[str, int], None]) 
         out = tmp / "out"
         out.mkdir()
 
+        # Bypass YouTube bot-detection from datacenter IPs
+        ytdlp_extractor_args = ["--extractor-args", "youtube:player_client=tv,web_safari,ios,android"]
+
         # Stage 1 — fetch metadata
         progress("downloading", 5)
-        meta_r = subprocess.run([yt_dlp, "--dump-json", "--no-download", url], capture_output=True, text=True)
+        meta_r = subprocess.run(
+            [yt_dlp, "--dump-json", "--no-download", *ytdlp_extractor_args, url],
+            capture_output=True, text=True,
+        )
         if meta_r.returncode != 0:
             raise VideoIntelError(f"Metadata failed: {meta_r.stderr.strip()}")
         meta = json.loads(meta_r.stdout)
@@ -85,6 +91,7 @@ def process_video(url: str, user_id: str, progress: Callable[[str, int], None]) 
             "-f", "best[height<=720][ext=mp4]/bestvideo[height<=720]+bestaudio/best[height<=720]/best",
             "--merge-output-format", "mp4",
             "--no-playlist", "--socket-timeout", "30", "--retries", "5",
+            *ytdlp_extractor_args,
             "-o", str(video_path), url,
         ], capture_output=True, text=True)
         if dl_r.returncode != 0:
