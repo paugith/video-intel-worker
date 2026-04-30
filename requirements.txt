@@ -1,0 +1,6 @@
+fastapi==0.115.0
+uvicorn==0.30.6
+faster-whisper==1.1.1
+yt-dlp==2024.11.18
+boto3==1.35.93
+python-dotenv==1.0.1
